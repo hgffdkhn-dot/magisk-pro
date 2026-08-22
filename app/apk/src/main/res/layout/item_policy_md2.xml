@@ -117,6 +117,28 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?colorSurfaceVariant"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    gone="@{!item.isExpanded}">
+
+                    <Spinner
+                        android:id="@+id/policy_group"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:enabled="@{item.isEnabled}"
+                        android:paddingTop="@dimen/l_50"
+                        android:paddingBottom="@dimen/l_50"
+                        gone="@{!item.showGroup}"
+                        app:items="@{@stringArray/su_identity_options}"
+                        app:layout="@{@layout/item_spinner}"
+                        android:selection="@={item.groupPosition}" />
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/policy_expand_container"
                     gone="@{!item.isExpanded}"
                     android:layout_width="match_parent"

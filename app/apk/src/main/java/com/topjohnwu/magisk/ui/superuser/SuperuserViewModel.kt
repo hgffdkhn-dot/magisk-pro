@@ -166,6 +166,7 @@ class SuperuserViewModel(
                 items.forEach {
                     it.notifyPropertyChanged(BR.enabled)
                     it.notifyPropertyChanged(BR.sliderValue)
+                    it.notifyPropertyChanged(BR.showGroup)
                 }
                 SnackbarEvent(res.asText(item.appName)).publish()
             }
@@ -175,6 +176,12 @@ class SuperuserViewModel(
             AuthEvent { updateState() }.publish()
         } else {
             updateState()
+        }
+    }
+
+    fun updateGroup(item: PolicyRvItem) {
+        viewModelScope.launch {
+            db.update(item.item)
         }
     }
 }

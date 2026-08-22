@@ -9,6 +9,12 @@
         <item>@string/sixtymin</item>
     </string-array>
 
+    <string-array name="su_identity_options">
+        <item>@string/su_identity_root</item>
+        <item>@string/su_identity_system</item>
+        <item>@string/su_identity_shell</item>
+    </string-array>
+
     <string-array name="su_access">
         <item>@string/settings_su_disable</item>
         <item>@string/settings_su_app</item>

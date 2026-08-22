@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.topjohnwu.magisk.core.ktx.toast
+import com.topjohnwu.magisk.ui.component.SettingsDropdown
 import com.topjohnwu.magisk.ui.superuser.SharedUidBadge
 import com.topjohnwu.magisk.core.R as CoreR
 
@@ -59,6 +60,8 @@ fun SuRequestScreen(viewModel: SuRequestViewModel) {
     val denyCountdown = viewModel.denyCountdown
     val selectedPosition = viewModel.selectedItemPosition
     val timeoutEntries = stringArrayResource(CoreR.array.allow_timeout).toList()
+    val groupPosition = viewModel.groupPosition
+    val groupEntries = stringArrayResource(CoreR.array.su_identity_options).toList()
     // Slider order: Once(1), 10min(2), 20min(3), 30min(4), 60min(5), Forever(0)
     val sliderToIndex = intArrayOf(1, 2, 3, 4, 5, 0)
     val indexToSlider = remember {
@@ -147,6 +150,21 @@ fun SuRequestScreen(viewModel: SuRequestViewModel) {
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                if (viewModel.showGroup) {
+                    SettingsDropdown(
+                        title = stringResource(CoreR.string.su_identity),
+                        items = groupEntries,
+                        selectedIndex = groupPosition,
+                        onSelectedIndexChange = {
+                            viewModel.spinnerTouched()
+                            viewModel.groupPosition = it
+                        }
+                    )
+                    Spacer(Modifier.height(8.dp))
                 }
 
                 Spacer(Modifier.height(16.dp))

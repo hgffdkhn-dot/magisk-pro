@@ -237,6 +237,18 @@ object DenyList : BaseSettingsItem.Toggle() {
         }
 }
 
+object SuGroupEnabled : BaseSettingsItem.Toggle() {
+    override val title = CoreR.string.settings_su_group_enabled_title.asText()
+    override val description get() = CoreR.string.settings_su_group_enabled_summary.asText()
+
+    override var value = Config.suGroupEnabled
+        set(value) {
+            field = value
+            Config.suGroupEnabled = value
+            notifyPropertyChanged(BR.checked)
+        }
+}
+
 object DenyListConfig : BaseSettingsItem.Blank() {
     override val title = CoreR.string.settings_denylist_config_title.asText()
     override val description = CoreR.string.settings_denylist_config_summary.asText()

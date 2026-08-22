@@ -53,6 +53,13 @@ class SuRequestViewModel(
         set(value) = set(value, field, { field = it }, BR.selectedItemPosition)
 
     @get:Bindable
+    var groupPosition = 0
+        set(value) = set(value, field, { field = it }, BR.groupPosition)
+
+    @get:Bindable
+    val showGroup = Config.suGroupEnabled
+
+    @get:Bindable
     var grantEnabled = false
         set(value) = set(value, field, { field = it }, BR.grantEnabled)
 
@@ -120,6 +127,7 @@ class SuRequestViewModel(
         }
 
         selectedItemPosition = timeoutPrefs.getInt(packageName, 0)
+        groupPosition = handler.group
 
         // Set timer
         timer.start()
@@ -141,6 +149,7 @@ class SuRequestViewModel(
         timeoutPrefs.edit().putInt(packageName, pos).apply()
 
         viewModelScope.launch {
+            handler.group = groupPosition
             handler.respond(action, Config.Value.TIMEOUT_LIST[pos])
             // Kill activity after response
             DieEvent().publish()

@@ -46,6 +46,7 @@ import com.topjohnwu.magisk.ui.component.SettingsDropdown
 import com.topjohnwu.magisk.ui.component.SettingsSwitch
 import com.topjohnwu.magisk.ui.component.rememberConfirmDialog
 import com.topjohnwu.magisk.ui.component.verticalScrollbar
+import com.topjohnwu.magisk.core.Config
 import com.topjohnwu.magisk.core.model.su.SuPolicy
 import kotlinx.coroutines.launch
 import com.topjohnwu.magisk.core.R as CoreR
@@ -155,7 +156,7 @@ fun SuperuserDetailScreen(
                         onCheckedChange = { viewModel.toggleRestrict(item) }
                     )
                 }
-                if (item.isEnabled) {
+                if (Config.suGroupEnabled && item.isEnabled) {
                     val identityItems = listOf(
                         stringResource(CoreR.string.su_identity_root),
                         stringResource(CoreR.string.su_identity_system),

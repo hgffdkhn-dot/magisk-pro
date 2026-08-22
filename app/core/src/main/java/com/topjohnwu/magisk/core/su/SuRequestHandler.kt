@@ -32,6 +32,12 @@ class SuRequestHandler(
     lateinit var pkgInfo: PackageInfo
         private set
 
+    // Per-app permission group (root/system/shell). Delegate to policy.group so
+    // both the request dialog and the superuser list can read/write it.
+    var group: Int
+        get() = policy.group
+        set(value) { policy.group = value }
+
     // Return true to indicate undetermined policy, require user interaction
     suspend fun start(intent: Intent): Boolean {
         if (!init(intent))
@@ -101,6 +107,7 @@ class SuRequestHandler(
             try {
                 DataOutputStream(FileOutputStream(output)).use {
                     it.writeInt(policy.policy)
+                    it.writeInt(policy.group)
                     it.flush()
                 }
             } catch (e: IOException) {

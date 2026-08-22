@@ -38,11 +38,24 @@ class PolicyRvItem(
     val showSlider = Config.suRestrict || item.policy == SuPolicy.RESTRICT
 
     @get:Bindable
+    val showGroup get() = Config.suGroupEnabled && item.policy >= SuPolicy.ALLOW
+
+    @get:Bindable
     var isEnabled
         get() = item.policy >= SuPolicy.ALLOW
         set(value) = setImpl(value, isEnabled) {
             notifyPropertyChanged(BR.enabled)
+            notifyPropertyChanged(BR.showGroup)
             viewModel.updatePolicy(this, if (it) SuPolicy.ALLOW else SuPolicy.DENY)
+        }
+
+    @get:Bindable
+    var groupPosition
+        get() = item.group
+        set(value) = setImpl(value, groupPosition) {
+            item.group = it
+            notifyPropertyChanged(BR.groupPosition)
+            viewModel.updateGroup(this)
         }
 
     @get:Bindable

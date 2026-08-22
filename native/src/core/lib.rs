@@ -85,6 +85,7 @@ pub mod ffi {
         SuMntNs,
         DenylistConfig,
         ZygiskConfig,
+        SuGroupEnabled,
         BootloopCount,
         SuManager,
     }

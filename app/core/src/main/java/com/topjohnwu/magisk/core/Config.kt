@@ -22,6 +22,7 @@ object Config : PreferenceConfig, DBConfig {
         const val SU_MULTIUSER_MODE = "multiuser_mode"
         const val SU_MNT_NS = "mnt_ns"
         const val SU_BIOMETRIC = "su_biometric"
+        const val SU_GROUP_ENABLED = "su_group_enabled"
         const val ZYGISK = "zygisk"
         const val BOOTLOOP = "bootloop"
         const val SU_MANAGER = "requester"
@@ -153,6 +154,7 @@ object Config : PreferenceConfig, DBConfig {
     var suReAuth by preference(Key.SU_REAUTH, false)
     var suTapjack by preference(Key.SU_TAPJACK, true)
     var suRestrict by preference(Key.SU_RESTRICT, false)
+    var suGroupEnabled by dbSettings(Key.SU_GROUP_ENABLED, false)
 
     private const val SU_FINGERPRINT = "su_fingerprint"
     private const val UPDATE_CHANNEL = "update_channel"

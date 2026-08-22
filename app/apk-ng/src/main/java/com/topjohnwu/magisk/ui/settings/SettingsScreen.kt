@@ -299,6 +299,18 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
                 onCheckedChange = { viewModel.toggleDenyList(it) }
             )
 
+            // Su Group Enabled
+            var suGroupEnabled by remember { mutableStateOf(Config.suGroupEnabled) }
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_su_group_enabled_title),
+                summary = stringResource(CoreR.string.settings_su_group_enabled_summary),
+                checked = suGroupEnabled,
+                onCheckedChange = {
+                    suGroupEnabled = it
+                    Config.suGroupEnabled = it
+                }
+            )
+
             // DenyList Config
             SettingsArrow(
                 title = stringResource(CoreR.string.settings_denylist_config_title),

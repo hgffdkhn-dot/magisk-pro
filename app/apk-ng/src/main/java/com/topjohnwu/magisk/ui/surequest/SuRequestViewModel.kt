@@ -36,8 +36,11 @@ class SuRequestViewModel(
     var isSharedUid by mutableStateOf(false)
 
     var selectedItemPosition by mutableIntStateOf(0)
+    var groupPosition by mutableIntStateOf(0)
     var grantEnabled by mutableStateOf(false)
     var denyCountdown by mutableIntStateOf(0)
+
+    val showGroup = Config.suGroupEnabled
 
     var showUi by mutableStateOf(false)
     var useTapjackProtection by mutableStateOf(false)
@@ -90,6 +93,7 @@ class SuRequestViewModel(
         }
 
         selectedItemPosition = timeoutPrefs.getInt(packageName, 0)
+        groupPosition = handler.group
         timer.start()
         useTapjackProtection = Config.suTapjack
         showUi = true
@@ -102,6 +106,7 @@ class SuRequestViewModel(
 
         val pos = selectedItemPosition
         timeoutPrefs.edit { putInt(packageName, pos) }
+        handler.group = groupPosition
 
         viewModelScope.launch {
             handler.respond(action, Config.Value.TIMEOUT_LIST[pos])

@@ -163,7 +163,11 @@ impl MagiskD {
             // Apply the per-app permission group (an enhancement of the Allow policy).
             // Only injected when the client did not explicitly request an identity
             // (still targeting root, with no supplementary gids and no SELinux context).
-            if req.target_uid == AID_ROOT && req.gids.is_empty() && req.context.is_empty() {
+            if info.cfg.su_group_enabled
+                && req.target_uid == AID_ROOT
+                && req.gids.is_empty()
+                && req.context.is_empty()
+            {
                 match access.settings.group {
                     1 => {
                         // Run as system (u:r:system_app:s0) with the system primary

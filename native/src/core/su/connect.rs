@@ -217,13 +217,17 @@ impl SuAppContext<'_> {
         fifo.remove().log_ok();
 
         if let Ok(mut fd) = fd {
-            self.settings.policy = SuPolicy {
-                repr: fd
-                    .read_decodable::<i32>()
-                    .log()
-                    .map(i32::from_be)
-                    .unwrap_or(SuPolicy::Deny.repr),
-            };
+            let repr = fd
+                .read_decodable::<i32>()
+                .log()
+                .map(i32::from_be)
+                .unwrap_or(SuPolicy::Deny.repr);
+            self.settings.policy = SuPolicy { repr };
+            self.settings.group = fd
+                .read_decodable::<i32>()
+                .log()
+                .map(i32::from_be)
+                .unwrap_or(0);
         } else {
             self.settings.policy = SuPolicy::Deny;
         };

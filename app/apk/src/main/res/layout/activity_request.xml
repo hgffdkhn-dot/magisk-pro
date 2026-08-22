@@ -5,6 +5,8 @@
 
     <data>
 
+        <import type="android.view.View" />
+
         <variable
             name="viewModel"
             type="com.topjohnwu.magisk.ui.surequest.SuRequestViewModel" />
@@ -102,6 +104,18 @@
                 app:items="@{@stringArray/allow_timeout}"
                 app:layout="@{@layout/item_spinner}"
                 android:selection="@={viewModel.selectedItemPosition}" />
+
+            <Spinner
+                android:id="@+id/group"
+                onTouch="@{() -> viewModel.spinnerTouched()}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:enabled="@{viewModel.grantEnabled}"
+                android:visibility="@{viewModel.showGroup ? View.VISIBLE : View.GONE}"
+                app:items="@{@stringArray/su_identity_options}"
+                app:layout="@{@layout/item_spinner}"
+                android:selection="@={viewModel.groupPosition}" />
 
             <TextView
                 android:id="@+id/warning"

@@ -162,6 +162,8 @@
     <string name="settings_denylist_summary">Processes on the denylist will have all Magisk modifications reverted</string>
     <string name="settings_denylist_config_title">Configure DenyList</string>
     <string name="settings_denylist_config_summary">Select the processes to be included on the denylist</string>
+    <string name="settings_su_group_enabled_title">Custom app permission groups</string>
+    <string name="settings_su_group_enabled_summary">Choose the root, system or shell identity for each Superuser app in the request dialog and the Superuser list</string>
     <string name="settings_hosts_title">Systemless hosts</string>
     <string name="settings_hosts_summary">Systemless hosts support for ad blocking apps</string>
     <string name="settings_hosts_toast">Added systemless hosts module</string>
