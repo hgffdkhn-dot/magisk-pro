@@ -46,6 +46,8 @@ object Config : PreferenceConfig, DBConfig {
         const val THEME_ORDINAL = "theme_ordinal"
         const val ASKED_HOME = "asked_home"
         const val DOH = "doh"
+        const val DNS_PROVIDER = "dns_provider"
+        const val DNS_CUSTOM_URL = "dns_custom_url"
         const val RAND_NAME = "rand_name"
 
         val NO_MIGRATION = setOf(ASKED_HOME, SU_REQUEST_TIMEOUT,
@@ -69,6 +71,12 @@ object Config : PreferenceConfig, DBConfig {
         const val BETA_CHANNEL = 1
         const val DEBUG_CHANNEL = 2
         const val CUSTOM_CHANNEL = 3
+
+        // DNS provider
+        const val DNS_PROVIDER_CLOUDFLARE = 0
+        const val DNS_PROVIDER_GOOGLE = 1
+        const val DNS_PROVIDER_ADGUARD = 2
+        const val DNS_PROVIDER_CUSTOM = 3
 
         // root access mode
         const val ROOT_ACCESS_DISABLED = 0
@@ -116,6 +124,8 @@ object Config : PreferenceConfig, DBConfig {
     private var checkUpdatePrefs by preference(Key.CHECK_UPDATES, true)
     private var localePrefs by preference(Key.LOCALE, "")
     var doh by preference(Key.DOH, false)
+    var dnsProvider by preference(Key.DNS_PROVIDER, Value.DNS_PROVIDER_CLOUDFLARE)
+    var dnsCustomUrl by preference(Key.DNS_CUSTOM_URL, "")
     var updateChannel by preference(Key.RELEASE_CHANNEL, Value.DEFAULT_CHANNEL)
     var customChannelUrl by preference(Key.CUSTOM_CHANNEL, "")
     var downloadDir by preference(Key.DOWNLOAD_DIR, "")

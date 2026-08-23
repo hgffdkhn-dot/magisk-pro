@@ -82,4 +82,11 @@
         <item>@string/color_mode_monet_light</item>
         <item>@string/color_mode_monet_dark</item>
     </string-array>
+
+    <string-array name="dns_provider">
+        <item>@string/dns_provider_cloudflare</item>
+        <item>@string/dns_provider_google</item>
+        <item>@string/dns_provider_adguard</item>
+        <item>@string/dns_provider_custom</item>
+    </string-array>
 </resources>

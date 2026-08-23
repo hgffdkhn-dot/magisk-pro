@@ -23,27 +23,62 @@ import java.net.UnknownHostException
 
 private class DnsResolver(client: OkHttpClient) : Dns {
 
-    private val doh by lazy {
-        DnsOverHttps.Builder().client(client)
-            .url("https://cloudflare-dns.com/dns-query".toHttpUrl())
-            .bootstrapDnsHosts(listOf(
-                InetAddress.getByName("162.159.36.1"),
-                InetAddress.getByName("162.159.46.1"),
-                InetAddress.getByName("1.1.1.1"),
-                InetAddress.getByName("1.0.0.1"),
-                InetAddress.getByName("2606:4700:4700::1111"),
-                InetAddress.getByName("2606:4700:4700::1001"),
-                InetAddress.getByName("2606:4700:4700::0064"),
-                InetAddress.getByName("2606:4700:4700::6400")
-            ))
-            .resolvePrivateAddresses(true)  /* To make PublicSuffixDatabase never used */
-            .build()
+    private fun buildDoh(url: String, hosts: List<String>): DnsOverHttps {
+        return try {
+            DnsOverHttps.Builder().client(client)
+                .url(url.toHttpUrl())
+                .bootstrapDnsHosts(hosts.map { InetAddress.getByName(it) })
+                .resolvePrivateAddresses(true)  /* To make PublicSuffixDatabase never used */
+                .build()
+        } catch (e: Exception) {
+            DnsOverHttps.Builder().client(client)
+                .url("https://cloudflare-dns.com/dns-query".toHttpUrl())
+                .bootstrapDnsHosts(listOf(
+                    InetAddress.getByName("1.1.1.1"),
+                    InetAddress.getByName("8.8.8.8")
+                ))
+                .resolvePrivateAddresses(true)
+                .build()
+        }
+    }
+
+    private var lastProvider = Config.dnsProvider
+    private var dohCache: DnsOverHttps? = null
+
+    private fun currentDoh(): DnsOverHttps {
+        val provider = Config.dnsProvider
+        if (dohCache == null || provider != lastProvider) {
+            lastProvider = provider
+            dohCache = when (provider) {
+                Config.Value.DNS_PROVIDER_GOOGLE -> buildDoh(
+                    "https://dns.google/dns-query",
+                    listOf("8.8.8.8", "8.8.4.4", "2001:4860:4860::8888", "2001:4860:4860::8844")
+                )
+                Config.Value.DNS_PROVIDER_ADGUARD -> buildDoh(
+                    "https://dns.adguard-dns.com/dns-query",
+                    listOf("94.140.14.14", "94.140.15.15", "2a10:50c0::ad1:ff", "2a10:50c0::ad2:ff")
+                )
+                Config.Value.DNS_PROVIDER_CUSTOM -> buildDoh(
+                    Config.dnsCustomUrl.ifEmpty { "https://cloudflare-dns.com/dns-query" },
+                    listOf("1.1.1.1", "8.8.8.8")
+                )
+                else -> buildDoh(
+                    "https://cloudflare-dns.com/dns-query",
+                    listOf(
+                        "162.159.36.1", "162.159.46.1", "1.1.1.1", "1.0.0.1",
+                        "2606:4700:4700::1111", "2606:4700:4700::1001",
+                        "2606:4700:4700::0064", "2606:4700:4700::6400"
+                    )
+                )
+            }
+        }
+        return dohCache!!
     }
 
     override fun lookup(hostname: String): List<InetAddress> {
         if (Config.doh) {
             try {
-                return doh.lookup(hostname)
+                return currentDoh().lookup(hostname)
             } catch (e: UnknownHostException) {}
         }
         return Dns.SYSTEM.lookup(hostname)

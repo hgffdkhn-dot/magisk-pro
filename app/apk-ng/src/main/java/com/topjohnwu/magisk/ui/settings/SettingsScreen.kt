@@ -216,6 +216,41 @@ private fun AppSettingsSection() {
             }
         )
 
+        // DNS Provider
+        val dnsProviderEntries = remember {
+            resources.getStringArray(CoreR.array.dns_provider).toList()
+        }
+        var dnsProvider by remember {
+            mutableIntStateOf(Config.dnsProvider.coerceIn(0, dnsProviderEntries.size - 1))
+        }
+        var showDnsUrlDialog by remember { mutableStateOf(false) }
+
+        SettingsDropdown(
+            title = stringResource(CoreR.string.settings_dns_provider_title),
+            items = dnsProviderEntries,
+            selectedIndex = dnsProvider,
+            onSelectedIndexChange = { index ->
+                dnsProvider = index
+                Config.dnsProvider = index
+                if (index == Config.Value.DNS_PROVIDER_CUSTOM && Config.dnsCustomUrl.isBlank()) {
+                    showDnsUrlDialog = true
+                }
+            }
+        )
+
+        // Custom DNS URL (for custom provider)
+        if (dnsProvider == Config.Value.DNS_PROVIDER_CUSTOM) {
+            DnsCustomUrlDialog(
+                show = showDnsUrlDialog,
+                onDismiss = { showDnsUrlDialog = false }
+            )
+            SettingsArrow(
+                title = stringResource(CoreR.string.settings_dns_custom_url_title),
+                summary = Config.dnsCustomUrl.ifBlank { null },
+                onClick = { showDnsUrlDialog = true }
+            )
+        }
+
         // Update Checker
         var checkUpdate by remember { mutableStateOf(Config.checkUpdate) }
         SettingsSwitch(
@@ -525,6 +560,38 @@ private fun UpdateChannelUrlDialog(show: Boolean, onDismiss: () -> Unit) {
                     onClick = {
                         Config.customChannelUrl = url
                         Info.resetUpdate()
+                        onDismiss()
+                    }
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun DnsCustomUrlDialog(show: Boolean, onDismiss: () -> Unit) {
+    val showState = rememberSaveable { mutableStateOf(show) }
+    showState.value = show
+    var url by rememberSaveable { mutableStateOf(Config.dnsCustomUrl) }
+
+    if (showState.value) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(CoreR.string.settings_dns_custom_url_title)) },
+            text = {
+                OutlinedTextField(
+                    value = url,
+                    onValueChange = { url = it },
+                    placeholder = { Text(stringResource(CoreR.string.settings_dns_custom_url_hint)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        Config.dnsCustomUrl = url
                         onDismiss()
                     }
                 ) {
