@@ -30,9 +30,23 @@ jobs:
           is-asset-build: true
 
       - name: Restore signing keystore
+        env:
+          MAGISK_KEYSTORE_B64: ${{ secrets.MAGISK_KEYSTORE_B64 }}
         run: |
           mkdir -p $HOME/.android
-          echo "${{ secrets.MAGISK_KEYSTORE_B64 }}" | base64 -d > $HOME/.android/debug.keystore
+          if [ -z "$MAGISK_KEYSTORE_B64" ]; then
+            echo "::error::MAGISK_KEYSTORE_B64 secret is not set on the repository!"
+            exit 1
+          fi
+          python3 -c "
+import base64, os
+raw = os.environ['MAGISK_KEYSTORE_B64'].strip()
+data = base64.b64decode(raw, validate=False)
+path = os.path.expanduser('~/.android/debug.keystore')
+open(path, 'wb').write(data)
+print(f'decoded {len(raw)} b64 chars -> {len(data)} bytes -> {path}')
+"
+          ls -l $HOME/.android/debug.keystore
 
       - name: Build release
         run: ./build.py -vr all
