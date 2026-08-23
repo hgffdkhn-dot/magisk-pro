@@ -48,7 +48,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.LifecycleResumedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.topjohnwu.magisk.R
 import com.topjohnwu.magisk.arch.VMFactory
@@ -141,7 +140,7 @@ fun MainScreen(initialTab: Int = Tab.HOME.ordinal) {
                     }
                     CollectNavEvents(vm, navigator)
                     val isVisible = pagerState.currentPage == page
-                    LifecycleResumedEffect(isVisible) {
+                    LaunchedEffect(isVisible) {
                         if (isVisible) {
                             vm.refreshDenyListState()
                         }
