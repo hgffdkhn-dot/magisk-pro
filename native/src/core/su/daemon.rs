@@ -231,6 +231,14 @@ impl MagiskD {
 
     fn get_su_info(&self, uid: i32) -> Arc<SuInfo> {
         if uid == AID_ROOT {
+            // AID_ROOT: still consult the policy DB so the explicit Root entry
+            // (uid=0) added in the superuser list can carry a group override.
+            // Fall back to a plain allow when the entry is not an Allow, so the
+            // original always-root behavior is preserved for every other case.
+            let info = self.build_su_info(AID_ROOT);
+            if info.access.lock().settings.policy == SuPolicy::Allow {
+                return info;
+            }
             return Arc::new(SuInfo::allow(AID_ROOT));
         }
 
