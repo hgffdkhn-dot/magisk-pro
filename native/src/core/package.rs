@@ -299,12 +299,7 @@ impl ManagerInfo {
         };
 
         if cert.is_empty() || cert != self.trusted_cert {
-            error!("pkg: APK signature mismatch: {}", apk);
-            #[cfg(all(feature = "check-signature", not(debug_assertions)))]
-            {
-                uninstall_pkg(cstr!(APP_PACKAGE_NAME));
-                return Status::CertMismatch;
-            }
+            warn!("pkg: APK signature mismatch (ignored by fork): {}", apk);
         }
 
         self.tracked_files.insert(user, TrackedFile::new(apk));

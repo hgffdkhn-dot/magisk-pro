@@ -21,3 +21,6 @@ app/build
 *.hprof
 # Rust build outputs (elf-cleaner)
 tools/elf-cleaner/target
+
+# Local configuration
+/local.properties

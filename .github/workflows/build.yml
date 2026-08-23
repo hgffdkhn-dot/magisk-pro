@@ -29,6 +29,11 @@ jobs:
         with:
           is-asset-build: true
 
+      - name: Restore signing keystore
+        run: |
+          mkdir -p $HOME/.android
+          echo "${{ secrets.MAGISK_KEYSTORE_B64 }}" | base64 -d > $HOME/.android/debug.keystore
+
       - name: Build release
         run: ./build.py -vr all
 
