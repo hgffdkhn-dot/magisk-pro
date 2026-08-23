@@ -27,7 +27,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -94,6 +96,19 @@ fun DenyListScreen(viewModel: DenyListViewModel, onBack: () -> Unit) {
                     }
                 },
                 actions = {
+                    IconButton(onClick = viewModel::selectAll) {
+                        Icon(
+                            imageVector = Icons.Filled.SelectAll,
+                            contentDescription = stringResource(CoreR.string.select_all),
+                        )
+                    }
+                    IconButton(onClick = viewModel::clearAll) {
+                        Icon(
+                            imageVector = Icons.Filled.Deselect,
+                            contentDescription = stringResource(CoreR.string.clear_all),
+                        )
+                    }
+
                     Box {
                         IconButton(
                             onClick = { showSortMenu.value = true },

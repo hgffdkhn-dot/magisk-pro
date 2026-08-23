@@ -88,6 +88,16 @@ class DenyListViewModel : AsyncLoadViewModel() {
     fun setSortBy(s: SortBy) { _sortBy.value = s }
     fun toggleSortReverse() { _sortReverse.value = !_sortReverse.value }
 
+    fun selectAll() {
+        _allApps.value.forEach { app ->
+            app.processes.filterNot { it.isEnabled }.forEach { it.toggle() }
+        }
+    }
+
+    fun clearAll() {
+        _allApps.value.filter { it.isChecked }.forEach { it.toggleAll() }
+    }
+
     @SuppressLint("InlinedApi")
     override suspend fun doLoadWork() {
         _loading.value = true

@@ -53,6 +53,14 @@ class SettingsViewModel : BaseViewModel() {
         }
     }
 
+    fun refreshDenyListState() {
+        Shell.cmd("magisk --denylist status").submit { result ->
+            val enabled = result.isSuccess
+            Config.denyList = enabled
+            _denyListEnabled.value = enabled
+        }
+    }
+
     fun withAuth(action: () -> Unit) = authenticate(action)
 
     fun notifyZygiskChange() {
