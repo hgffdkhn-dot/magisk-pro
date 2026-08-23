@@ -21,7 +21,7 @@ import java.io.File
 import java.net.InetAddress
 import java.net.UnknownHostException
 
-private class DnsResolver(client: OkHttpClient) : Dns {
+private class DnsResolver(private val client: OkHttpClient) : Dns {
 
     private fun buildDoh(url: String, hosts: List<String>): DnsOverHttps {
         return try {
