@@ -39,13 +39,13 @@ jobs:
             exit 1
           fi
           python3 -c "
-import base64, os
-raw = os.environ['MAGISK_KEYSTORE_B64'].strip()
-data = base64.b64decode(raw, validate=False)
-path = os.path.expanduser('~/.android/debug.keystore')
-open(path, 'wb').write(data)
-print(f'decoded {len(raw)} b64 chars -> {len(data)} bytes -> {path}')
-"
+          import base64, os
+          raw = os.environ['MAGISK_KEYSTORE_B64'].strip()
+          data = base64.b64decode(raw, validate=False)
+          path = os.path.expanduser('~/.android/debug.keystore')
+          open(path, 'wb').write(data)
+          print(f'decoded {len(raw)} b64 chars -> {len(data)} bytes -> {path}')
+          "
           ls -l $HOME/.android/debug.keystore
 
       - name: Build release
