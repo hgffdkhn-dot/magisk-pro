@@ -123,6 +123,13 @@
     <string name="suspend_text_zygisk">%1$s 未启用，此模块暂停加载</string>
     <string name="zygisk_module_unloaded">存在兼容性问题，此模块未加载</string>
     <string name="module_empty">未安装任何模块</string>
+    <string name="module_search_hint">搜索模块</string>
+    <string name="module_no_match">无匹配模块</string>
+    <string name="sort_by_name">按名称排序</string>
+    <string name="sort_by_version">按版本排序</string>
+    <string name="sort_by_author">按作者排序</string>
+    <string name="sort_reverse">反向排序</string>
+    <string name="menu_sort">排序</string>
     <string name="confirm_install">安装模块 %1$s？</string>
     <string name="confirm_install_title">安装确认</string>
 

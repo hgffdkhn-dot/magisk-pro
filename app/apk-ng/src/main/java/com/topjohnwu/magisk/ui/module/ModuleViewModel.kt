@@ -19,6 +19,7 @@ import com.topjohnwu.magisk.ui.navigation.Route
 import com.topjohnwu.magisk.view.Notifications
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -67,24 +68,60 @@ class ModuleViewModel : AsyncLoadViewModel() {
 
     data class UiState(
         val loading: Boolean = true,
+        val refreshing: Boolean = false,
         val modules: List<ModuleItem> = emptyList(),
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query.asStateFlow()
+    private val _sortBy = MutableStateFlow(ModuleSortBy.NAME)
+    val sortBy: StateFlow<ModuleSortBy> = _sortBy.asStateFlow()
+    private val _sortReverse = MutableStateFlow(false)
+    val sortReverse: StateFlow<Boolean> = _sortReverse.asStateFlow()
+
+    val filteredModules: StateFlow<List<ModuleItem>> = combine(
+        _uiState, _query, _sortBy, _sortReverse
+    ) { state, query, sortBy, reverse ->
+        val q = query.trim()
+        state.modules
+            .filter { item ->
+                q.isEmpty() ||
+                    item.module.name.contains(q, ignoreCase = true) ||
+                    item.module.id.contains(q, ignoreCase = true) ||
+                    item.module.author.contains(q, ignoreCase = true) ||
+                    item.module.description.contains(q, ignoreCase = true)
+            }
+            .sortedWith(
+                when (sortBy) {
+                    ModuleSortBy.NAME ->
+                        if (reverse) compareByDescending<ModuleItem> { it.module.name.lowercase() }
+                        else compareBy { it.module.name.lowercase() }
+                    ModuleSortBy.VERSION ->
+                        if (reverse) compareByDescending<ModuleItem> { it.module.versionCode }
+                        else compareBy { it.module.versionCode }
+                    ModuleSortBy.AUTHOR ->
+                        if (reverse) compareByDescending<ModuleItem> { it.module.author.lowercase() }
+                        else compareBy { it.module.author.lowercase() }
+                }
+            )
+    }
+
     override suspend fun doLoadWork() {
-        _uiState.update { it.copy(loading = true) }
+        val isRefresh = _uiState.value.modules.isNotEmpty()
+        _uiState.update { it.copy(loading = !isRefresh, refreshing = isRefresh) }
         val moduleLoaded = Info.env.isActive &&
             withContext(Dispatchers.IO) { LocalModule.loaded() }
         if (moduleLoaded) {
             val modules = withContext(Dispatchers.Default) {
                 LocalModule.installed().map { ModuleItem(it) }
             }
-            _uiState.update { it.copy(loading = false, modules = modules) }
+            _uiState.update { it.copy(loading = false, refreshing = false, modules = modules) }
             loadUpdateInfo()
         } else {
-            _uiState.update { it.copy(loading = false) }
+            _uiState.update { it.copy(loading = false, refreshing = false) }
         }
     }
 
@@ -120,10 +157,26 @@ class ModuleViewModel : AsyncLoadViewModel() {
     fun toggleEnabled(item: ModuleItem) {
         item.isEnabled = !item.isEnabled
         item.module.enable = item.isEnabled
+        showSnackbar(CoreR.string.reboot_apply_change)
     }
 
     fun toggleRemove(item: ModuleItem) {
         item.isRemoved = !item.isRemoved
         item.module.remove = item.isRemoved
+        showSnackbar(CoreR.string.reboot_apply_change)
+    }
+
+    fun updateQuery(query: String) {
+        _query.value = query
+    }
+
+    fun setSortBy(sortBy: ModuleSortBy) {
+        _sortBy.value = sortBy
+    }
+
+    fun toggleSortReverse() {
+        _sortReverse.value = !_sortReverse.value
     }
 }
+
+enum class ModuleSortBy { NAME, VERSION, AUTHOR }

@@ -28,6 +28,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
@@ -37,8 +42,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -89,6 +100,10 @@ import com.topjohnwu.magisk.core.R as CoreR
 @Composable
 fun ModuleScreen(viewModel: ModuleViewModel) {
     val uiState by viewModel.uiState.collectAsState()
+    val filteredModules by viewModel.filteredModules.collectAsState()
+    val sortBy by viewModel.sortBy.collectAsState()
+    val sortReverse by viewModel.sortReverse.collectAsState()
+    val query by viewModel.query.collectAsState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val colorScheme = MaterialTheme.colorScheme
     val context = LocalContext.current
@@ -101,6 +116,8 @@ fun ModuleScreen(viewModel: ModuleViewModel) {
 
     var pendingOnlineModule by remember { mutableStateOf<OnlineModule?>(null) }
     val showOnlineDialog = rememberSaveable { mutableStateOf(false) }
+    var showSearch by rememberSaveable { mutableStateOf(false) }
+    var sortMenuExpanded by remember { mutableStateOf(false) }
 
     val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -143,7 +160,60 @@ fun ModuleScreen(viewModel: ModuleViewModel) {
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(CoreR.string.modules)) },
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                actions = {
+                    Box {
+                        IconButton(onClick = { sortMenuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Sort,
+                                contentDescription = stringResource(CoreR.string.menu_sort),
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = sortMenuExpanded,
+                            onDismissRequest = { sortMenuExpanded = false }
+                        ) {
+                            val sortOptions = listOf(
+                                ModuleSortBy.NAME to CoreR.string.sort_by_name,
+                                ModuleSortBy.VERSION to CoreR.string.sort_by_version,
+                                ModuleSortBy.AUTHOR to CoreR.string.sort_by_author,
+                            )
+                            sortOptions.forEach { (option, labelRes) ->
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(labelRes)) },
+                                    leadingIcon = {
+                                        if (sortBy == option) {
+                                            Icon(Icons.Default.Check, null)
+                                        }
+                                    },
+                                    onClick = {
+                                        viewModel.setSortBy(option)
+                                        sortMenuExpanded = false
+                                    }
+                                )
+                            }
+                            HorizontalDivider()
+                            DropdownMenuItem(
+                                text = { Text(stringResource(CoreR.string.sort_reverse)) },
+                                leadingIcon = {
+                                    if (sortReverse) {
+                                        Icon(Icons.Default.Check, null)
+                                    }
+                                },
+                                onClick = {
+                                    viewModel.toggleSortReverse()
+                                    sortMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                    IconButton(onClick = { showSearch = !showSearch }) {
+                        Icon(
+                            imageVector = if (showSearch) Icons.Default.SearchOff else Icons.Default.Search,
+                            contentDescription = stringResource(CoreR.string.hide_search),
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -175,60 +245,87 @@ fun ModuleScreen(viewModel: ModuleViewModel) {
             return@Scaffold
         }
 
-        if (uiState.modules.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(horizontal = 32.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_module),
-                        contentDescription = null,
-                        tint = colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Text(
-                        text = stringResource(CoreR.string.module_empty),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            return@Scaffold
-        }
-
-        val listState = rememberLazyListState()
-        LazyColumn(
-            state = listState,
+        PullToRefreshBox(
+            isRefreshing = uiState.refreshing,
+            onRefresh = { viewModel.reload() },
             modifier = Modifier
                 .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .padding(padding)
-                .verticalScrollbar(listState, contentPadding = PaddingValues(bottom = 160.dp))
-                .padding(horizontal = 12.dp),
-            contentPadding = PaddingValues(bottom = 160.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            item { Spacer(Modifier.height(4.dp)) }
-            items(uiState.modules, key = { it.module.id }) { item ->
-                ModuleCard(
-                    item = item,
-                    viewModel = viewModel,
-                    onUpdateClick = { onlineModule ->
-                        if (onlineModule != null && Info.isConnected.value == true) {
-                            pendingOnlineModule = onlineModule
-                            showOnlineDialog.value = true
+            Column(modifier = Modifier.fillMaxSize()) {
+                AnimatedVisibility(visible = showSearch) {
+                    ModuleSearchInput(
+                        query = query,
+                        onQueryChange = viewModel::updateQuery,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
+
+                if (uiState.modules.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_module),
+                                contentDescription = null,
+                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.size(64.dp)
+                            )
+                            Text(
+                                text = stringResource(CoreR.string.module_empty),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = colorScheme.onSurfaceVariant
+                            )
                         }
                     }
-                )
+                } else if (filteredModules.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(CoreR.string.module_no_match),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    val listState = rememberLazyListState()
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection)
+                            .verticalScrollbar(listState, contentPadding = PaddingValues(bottom = 160.dp))
+                            .padding(horizontal = 12.dp),
+                        contentPadding = PaddingValues(bottom = 160.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        item { Spacer(Modifier.height(4.dp)) }
+                        items(filteredModules, key = { it.module.id }) { item ->
+                            ModuleCard(
+                                item = item,
+                                viewModel = viewModel,
+                                onUpdateClick = { onlineModule ->
+                                    if (onlineModule != null && Info.isConnected.value == true) {
+                                        pendingOnlineModule = onlineModule
+                                        showOnlineDialog.value = true
+                                    }
+                                }
+                            )
+                        }
+                        item { Spacer(Modifier.height(4.dp)) }
+                    }
+                }
             }
-            item { Spacer(Modifier.height(4.dp)) }
         }
     }
 }
@@ -468,4 +565,44 @@ private fun OnlineModuleDialog(
             }
         )
     }
+}
+
+@Composable
+private fun ModuleSearchInput(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier,
+        placeholder = { Text(stringResource(CoreR.string.module_search_hint)) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        trailingIcon = if (query.isNotEmpty()) {
+            {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(CoreR.string.hide_search),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        } else null,
+        shape = RoundedCornerShape(28.dp),
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        )
+    )
 }
