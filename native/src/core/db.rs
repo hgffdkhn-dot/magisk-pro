@@ -64,6 +64,7 @@ pub struct DbSettings {
     pub denylist: bool,
     pub zygisk: bool,
     pub su_group_enabled: bool,
+    pub pro_hide: bool,
 }
 
 #[repr(i32)]
@@ -102,6 +103,7 @@ impl DbEntryKey {
             DbEntryKey::SuGroupEnabled => "su_group_enabled",
             DbEntryKey::BootloopCount => "bootloop",
             DbEntryKey::SuManager => "requester",
+            DbEntryKey::ProHideConfig => "pro_hide",
             _ => "",
         }
     }
@@ -127,6 +129,7 @@ impl SqlTable for DbSettings {
             "denylist" => self.denylist = value != 0,
             "zygisk" => self.zygisk = value != 0,
             "su_group_enabled" => self.su_group_enabled = value != 0,
+            "pro_hide" => self.pro_hide = value != 0,
             "bootloop" => self.boot_count = value,
             _ => {}
         }
@@ -257,6 +260,7 @@ impl MagiskD {
             DbEntryKey::DenylistConfig => 0,
             DbEntryKey::ZygiskConfig => self.is_emulator as i32,
             DbEntryKey::SuGroupEnabled => 0,
+            DbEntryKey::ProHideConfig => 0,
             DbEntryKey::BootloopCount => 0,
             _ => -1,
         };

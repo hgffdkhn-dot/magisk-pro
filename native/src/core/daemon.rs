@@ -5,7 +5,8 @@ use crate::consts::{
 };
 use crate::db::Sqlite3;
 use crate::ffi::{
-    ModuleInfo, RequestCode, RespondCode, denylist_handler, get_magisk_tmp, scan_deny_apps,
+    DbEntryKey, ModuleInfo, RequestCode, RespondCode, denylist_handler, get_magisk_tmp,
+    scan_deny_apps,
 };
 use crate::logging::{android_logging, magisk_logging, setup_logfile, start_log_daemon};
 use crate::module::remove_modules;
@@ -34,7 +35,7 @@ use std::process::{Command, exit};
 use std::sync::OnceLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::nonpoison::Mutex;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 // Global magiskd singleton
 pub static MAGISKD: OnceLock<MagiskD> = OnceLock::new();
@@ -401,6 +402,32 @@ fn daemon_entry() {
         ..Default::default()
     };
     MAGISKD.set(daemon).ok();
+
+    // Pro hide mode: disguise the daemon process name with a random harmless name
+    if MagiskD::get().get_db_setting(DbEntryKey::ProHideConfig) != 0 {
+        // Kernel-thread style names, all <= 15 bytes (TASK_COMM_LEN - 1)
+        const DISGUISE_NAMES: &[&str] = &[
+            "kworker/u16:2",
+            "kworker/u8:1",
+            "ksoftirqd/0",
+            "kswapd0",
+            "kcompactd0",
+            "jbd2/sda1-8",
+            "kblockd/0",
+            "kauditd",
+            "khungtaskd",
+            "irq/34-eth0",
+        ];
+        let seed = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.subsec_nanos())
+            .unwrap_or(0) as usize
+            ^ (getpid() as usize) << 20;
+        let mut name = cstr::buf::new::<16>();
+        write!(name, "{}", DISGUISE_NAMES[seed % DISGUISE_NAMES.len()]).ok();
+        set_nice_name(&name);
+        info!("Magisk daemon disguised as {}", name);
+    }
 
     let sock_path = cstr::buf::new::<64>()
         .join_path(get_magisk_tmp())

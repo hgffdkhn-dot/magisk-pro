@@ -88,6 +88,7 @@ pub mod ffi {
         SuGroupEnabled,
         BootloopCount,
         SuManager,
+        ProHideConfig,
     }
 
     #[repr(i32)]

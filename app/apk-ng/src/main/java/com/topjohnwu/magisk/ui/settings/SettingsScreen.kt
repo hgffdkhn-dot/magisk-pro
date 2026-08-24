@@ -346,6 +346,18 @@ private fun MagiskSection(viewModel: SettingsViewModel) {
                 }
             )
 
+            // Pro Hide
+            var proHide by remember { mutableStateOf(Config.proHide) }
+            SettingsSwitch(
+                title = stringResource(CoreR.string.settings_pro_hide_title),
+                summary = stringResource(CoreR.string.settings_pro_hide_summary),
+                checked = proHide,
+                onCheckedChange = {
+                    proHide = it
+                    Config.proHide = it
+                }
+            )
+
             // DenyList Config
             SettingsArrow(
                 title = stringResource(CoreR.string.settings_denylist_config_title),

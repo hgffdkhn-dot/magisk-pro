@@ -160,6 +160,8 @@
     <string name="settings_denylist_summary">Magisk 不会修改列表中的进程</string>
     <string name="settings_denylist_config_title">配置排除列表</string>
     <string name="settings_denylist_config_summary">选择加入排除列表的进程</string>
+    <string name="settings_pro_hide_title">Pro 隐藏模式</string>
+    <string name="settings_pro_hide_summary">将 Magisk 守护进程伪装为随机无害的系统进程名，重启后生效</string>
     <string name="settings_hosts_title">Systemless hosts</string>
     <string name="settings_hosts_summary">为广告屏蔽应用提供 Systemless hosts 支持</string>
     <string name="settings_hosts_toast">已添加 systemless hosts 模块</string>
