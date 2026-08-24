@@ -16,12 +16,15 @@ import com.topjohnwu.magisk.core.utils.TextHolder
 import com.topjohnwu.magisk.core.utils.asText
 import com.topjohnwu.magisk.ui.flash.FlashUtils
 import com.topjohnwu.magisk.ui.navigation.Route
+import androidx.lifecycle.viewModelScope
 import com.topjohnwu.magisk.view.Notifications
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
@@ -107,7 +110,7 @@ class ModuleViewModel : AsyncLoadViewModel() {
                         else compareBy { it.module.author.lowercase() }
                 }
             )
-    }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     override suspend fun doLoadWork() {
         val isRefresh = _uiState.value.modules.isNotEmpty()
