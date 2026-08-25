@@ -422,7 +422,7 @@ fn daemon_entry() {
             .duration_since(UNIX_EPOCH)
             .map(|d| d.subsec_nanos())
             .unwrap_or(0) as usize
-            ^ (getpid() as usize) << 20;
+            ^ (getpid().as_raw() as usize) << 20;
         let mut name = cstr::buf::new::<16>();
         write!(name, "{}", DISGUISE_NAMES[seed % DISGUISE_NAMES.len()]).ok();
         set_nice_name(&name);
