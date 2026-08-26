@@ -353,8 +353,8 @@ void MagiskInit::patch_rw_root() noexcept {
     rm_rf("/.backup");
 
     // Patch init.rc
-    if (patch_rc_scripts("/", "/sbin", true))
-        patch_fissiond("/sbin");
+    if (patch_rc_scripts("/", "/debug_ramdisk", true))
+        patch_fissiond("/debug_ramdisk");
 
     xmkdir(PRE_TMPSRC, 0);
     xmount("tmpfs", PRE_TMPSRC, "tmpfs", 0, "mode=755");
@@ -371,7 +371,8 @@ void MagiskInit::patch_rw_root() noexcept {
     chdir("/");
 
     // Dump magiskinit as magisk
-    cp_afc(REDIR_PATH, "/sbin/magisk");
+    xmkdir("/debug_ramdisk", 0);
+    cp_afc(REDIR_PATH, "/debug_ramdisk/magisk");
 }
 
 int magisk_proxy_main(int, char *argv[]) {
@@ -381,22 +382,20 @@ int magisk_proxy_main(int, char *argv[]) {
     // Mount rootfs as rw to do post-init rootfs patches
     xmount(nullptr, "/", nullptr, MS_REMOUNT, nullptr);
 
-    unlink("/sbin/magisk");
+    unlink("/debug_ramdisk/magisk");
 
-    // Move tmpfs to /sbin
+    // Move tmpfs to /debug_ramdisk
     // make parent private before MS_MOVE
     xmount(nullptr, PRE_TMPSRC, nullptr, MS_PRIVATE, nullptr);
-    xmount(PRE_TMPDIR, "/sbin", nullptr, MS_MOVE, nullptr);
+    xmount(PRE_TMPDIR, "/debug_ramdisk", nullptr, MS_MOVE, nullptr);
     xumount2(PRE_TMPSRC, MNT_DETACH);
     rmdir(PRE_TMPDIR);
     rmdir(PRE_TMPSRC);
-
-    // Create symlinks pointing back to /root
-    recreate_sbin("/root", false);
+    // /sbin is not overlaid in this build (tmpfs goes to /debug_ramdisk), no need to recreate symlinks
 
     // Tell magiskd to remount rootfs
     setenv("REMOUNT_ROOT", "1", 1);
-    execve("/sbin/magisk", argv, environ);
+    execve("/debug_ramdisk/magisk", argv, environ);
     return 1;
 }
 
