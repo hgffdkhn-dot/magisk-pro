@@ -24,3 +24,8 @@ tools/elf-cleaner/target
 
 # Local configuration
 /local.properties
+
+# Docs site
+node_modules
+docs/.vitepress/dist
+docs/.vitepress/cache
